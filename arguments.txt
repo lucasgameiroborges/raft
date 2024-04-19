@@ -1,0 +1,12 @@
+Arguments for the node: --api-port=7777
+    --rpc-port=6666
+    --log-entry-path=./cluster-data/log 
+    --log-metadata-path=./cluster-data/log/metadata.json
+    --raft-state-path=./cluster-data/state/state.json 
+    --election-timeout=2000
+    --rpc-timeout=1250
+    --api-timeout=1500
+    --api-fwd-timeout=2000
+    --max-conn-retry-attempts=3
+    --snapshot-path=./cluster-data/snapshot
+    --cluster-config-path= --join-mode=k8s --cluster-config-path=./cluster-data/cluster

@@ -36,7 +36,7 @@ spec:
     spec:
       containers:
       - name: raft-node
-        image: su225/raft:0
+        image: lucasgameiroborges/raft:v1.0.2
         imagePullPolicy: Always
         # Specify the ports to be exposed in
         # the pod for communication with other nodes
@@ -108,22 +108,6 @@ spec:
             fieldRef:
               fieldPath: metadata.namespace
 
-      # Define pod anti-affinity so that no two raft-nodes
-      # (pods in K8S lingo) are scheduled on the same node.
-      # Because if the node goes down it will take down multiple
-      # raft-nodes instead of one which greatly decreases the
-      # raft cluster availability
-      affinity:
-        podAntiAffinity:
-          requiredDuringSchedulingIgnoredDuringExecution:
-          - labelSelector:
-              matchExpressions:
-              - key: app
-                operator: In
-                values:
-                - raft
-            topologyKey: "kubernetes.io/hostname"          
-      
   volumeClaimTemplates:
   # Volume claim template for storing write-ahead
   # log entries and associated metadata. Currently
@@ -134,11 +118,9 @@ spec:
       name: *log
       namespace: *ns
     spec:
-      accessModes: [ "ReadWriteOnce" ]
-      storageClassName: do-block-storage
-      resources:
-        requests:
-          storage: 1Gi
+      storageClassName: manual
+      accessModes: [ ReadWriteMany ]
+      resources: { requests: { storage: 1Gi } }
   
   # Volume claim template for storing raft state
   # This does not require a lot of space. But 1Gi
@@ -147,11 +129,9 @@ spec:
       name: *state
       namespace: *ns
     spec:
-      accessModes: [ "ReadWriteOnce" ]
-      storageClassName: do-block-storage
-      resources:
-        requests:
-          storage: 1Gi
+      storageClassName: manual
+      accessModes: [ ReadWriteMany ]
+      resources: { requests: { storage: 1Gi } }
   
   # Volume claim template for storing snapshot data
   # This might require lot of space
@@ -159,11 +139,9 @@ spec:
       name: *snapshot
       namespace: *ns
     spec:
-      accessModes: [ "ReadWriteOnce" ]
-      storageClassName: do-block-storage
-      resources:
-        requests:
-          storage: 5Gi
+      storageClassName: manual
+      accessModes: [ ReadWriteMany ]
+      resources: { requests: { storage: 5Gi } }
 ---
 apiVersion: v1
 kind: Service

@@ -17,6 +17,8 @@ spec:
     tier: datastore
     raft-cluster/id: raft000
   ports:
-  - protocol: TCP
-    port: 7777
-  clusterIP: None
+  - nodePort: 30000
+    targetPort: 7777
+    protocol: TCP
+    port: 30000
+  type: NodePort

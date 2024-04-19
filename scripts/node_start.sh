@@ -66,10 +66,13 @@ if [[ -z "${RUNNING_IN_K8S_ENV}" ]]; then
         --cluster-config-path=${CLUSTER_CONFIG_PATH}
 else
     echo 'Currently running in Kubernetes environment.'
+    echo "Arguments for the node: ${NODE_ARGS}" > arguments_before.txt
     NODE_ARGS="${NODE_ARGS} --join-mode=k8s --cluster-config-path=${CLUSTER_DIR_ROOT}/cluster"
     
     ## For debugging purposes only
-    echo "Arguments for the node: ${NODE_ARGS}"
+    touch arguments.txt
+    echo "Arguments for the node: ${NODE_ARGS}" > arguments_after.txt
+    export 
     # Print environment variables
     env
     # Print the info provided by DownwardAPI
