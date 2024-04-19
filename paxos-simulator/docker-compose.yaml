@@ -1,0 +1,36 @@
+version: '3'
+
+services:
+
+  # Run Basic- and Multi-Paxos and dump their output in the artifacts directory
+  paxos:
+    container_name: paxos
+    image: paxos:latest
+    hostname: paxos
+    build:
+      context: .
+      dockerfile: Dockerfile
+    volumes:
+      - ./artifacts:/artifacts
+
+  # Use mermaid-cli to generate a sequence diagram for the output Basic-Paxos in the artifacts directory
+  basic-paxos-mermaid:
+    container_name: basic-paxos-mermaid
+    image: minlag/mermaid-cli:latest
+    hostname: mermaid
+    command: ["-i", "/artifacts/basic-paxos-output.txt", "-o", "/artifacts/basic-paxos-output.pdf"]
+    depends_on:
+      - paxos
+    volumes:
+      - ./artifacts:/artifacts
+
+  # Use mermaid-cli to generate a sequence diagram for the output Multi-Paxos in the artifacts directory
+  multi-paxos-mermaid:
+    container_name: multi-paxos-mermaid
+    image: minlag/mermaid-cli:latest
+    hostname: mermaid
+    command: [ "-i", "/artifacts/multi-paxos-output.txt", "-o", "/artifacts/multi-paxos-output.pdf" ]
+    depends_on:
+      - paxos
+    volumes:
+      - ./artifacts:/artifacts

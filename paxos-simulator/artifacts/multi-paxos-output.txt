@@ -1,0 +1,25 @@
+sequenceDiagram
+client ->> proposer 9001: Request: Foo
+Note over client,proposer 9001: Initialize round 1
+
+proposer 9001->> acceptor 9002:(1) Prepare
+acceptor 9002-->> proposer 9001:(1) Promise
+proposer 9001->> acceptor 9003:(1) Prepare
+acceptor 9003-->> proposer 9001:(1) Promise
+proposer 9001->> acceptor 9002:(1) Accept: Foo
+proposer 9001->> acceptor 9003:(1) Accept: Foo
+acceptor 9002-->> learner 9005:(1) Accepted: Foo
+acceptor 9003-->> learner 9005:(1) Accepted: Foo
+learner 9005->>+ client: Foo was accepted as the value!
+client ->> proposer 9001: Request: Bar
+Note over client,proposer 9001: Initialize round 2
+
+proposer 9001->> acceptor 9002:(2) Prepare
+proposer 9001->> acceptor 9004:(2) Prepare
+acceptor 9002-->> proposer 9001:(2) Promise
+acceptor 9004-->> proposer 9001:(2) Promise
+proposer 9001->> acceptor 9002:(2) Accept: Bar
+proposer 9001->> acceptor 9004:(2) Accept: Bar
+acceptor 9002-->> learner 9005:(2) Accepted: Bar
+learner 9005->>+ client: Bar was accepted as the value!
+acceptor 9004-->> learner 9005:(2) Accepted: Bar
