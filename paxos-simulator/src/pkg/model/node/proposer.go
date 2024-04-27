@@ -74,11 +74,11 @@ func (p *Proposer) GetNonce() int {
 	return p.CurrentNonce
 }
 
-func (p *Proposer) AddProposal(value string) Proposal{
-	proposal :=  Proposal{
-		Value:    value,
-		Nonce:    p.GetNonce(),
-		Quorum:   p.GetQuorum(),
+func (p *Proposer) AddProposal(value string) Proposal {
+	proposal := Proposal{
+		Value:  value,
+		Nonce:  p.GetNonce(),
+		Quorum: p.GetQuorum(),
 	}
 
 	p.Proposals = append(p.Proposals, proposal)

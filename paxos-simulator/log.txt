@@ -1,0 +1,10 @@
+foo:bar
+teste1:teste2
+teste1:teste3
+DELETE xxx
+aaa:b
+bbb:c
+DELETE aaa
+DELETE bbb
+a:old
+a:new

@@ -26,7 +26,7 @@ func (c *Config) handlePrepare(incomingMessage *message.Message) error {
 					Round: prepareMessage.Round,
 				},
 			}
-			util.WriteToMultiFile(fmt.Sprintf("acceptor %d--x proposer %d:(%d) Nack", c.Acceptor.Port, incomingMessage.Source, prepareMessage.Nonce))
+			fmt.Println("acceptor %d--x proposer %d:(%d) Nack", c.Acceptor.Port, incomingMessage.Source, prepareMessage.Nonce)
 			if err := util.SendMessage(outgoingMessage, incomingMessage.Source); err != nil {
 				return err
 			}
@@ -58,12 +58,12 @@ func (c *Config) handlePrepare(incomingMessage *message.Message) error {
 
 	// Send the promise message to proposer
 	if c.Acceptor.HasAcceptedProposal(prepareMessage.Round) { // Send a promise with a proposal that has already been accepted
-		util.WriteToMultiFile(fmt.Sprintf("acceptor %d-->> proposer %d:(%d) Promise: %+v", c.Acceptor.Port, incomingMessage.Source, prepareMessage.Nonce, promise.Proposal))
+		fmt.Println("acceptor %d-->> proposer %d:(%d) Promise: %+v", c.Acceptor.Port, incomingMessage.Source, prepareMessage.Nonce, promise.Proposal)
 		if err := util.SendMessage(outgoingMessage, incomingMessage.Source); err != nil {
 			return err
 		}
 	} else { // Send a promise to not accept any nonce equal to or less than the one supplied in the prepare message
-		util.WriteToMultiFile(fmt.Sprintf("acceptor %d-->> proposer %d:(%d) Promise", c.Acceptor.Port, incomingMessage.Source, prepareMessage.Nonce))
+		fmt.Println("acceptor %d-->> proposer %d:(%d) Promise", c.Acceptor.Port, incomingMessage.Source, prepareMessage.Nonce)
 		if err := util.SendMessage(outgoingMessage, incomingMessage.Source); err != nil {
 			return err
 		}
@@ -91,7 +91,7 @@ func (c *Config) handleAccept(incomingMessage *message.Message) error {
 					Round: acceptMessage.Round,
 				},
 			}
-			util.WriteToMultiFile(fmt.Sprintf("acceptor %d--x proposer %d:(%d) Nack", c.Acceptor.Port, incomingMessage.Source, acceptMessage.Nonce))
+			fmt.Println("acceptor %d--x proposer %d:(%d) Nack", c.Acceptor.Port, incomingMessage.Source, acceptMessage.Nonce)
 			if err := util.SendMessage(outgoingMessage, incomingMessage.Source); err != nil {
 				return err
 			}
@@ -114,7 +114,7 @@ func (c *Config) handleAccept(incomingMessage *message.Message) error {
 
 	// Broadcast that a proposal has been accepted by this acceptor for this round to its list of learners
 	for _, learner := range c.Acceptor.Learners {
-		util.WriteToMultiFile(fmt.Sprintf("acceptor %d-->> learner %d:(%d) Accepted: %s", c.Acceptor.Port, learner, acceptMessage.Nonce, acceptMessage.Value))
+		fmt.Println("acceptor %d-->> learner %d:(%d) Accepted: %s", c.Acceptor.Port, learner, acceptMessage.Nonce, acceptMessage.Value)
 		if err := util.SendMessage(outgoingMessage, learner); err != nil {
 			return err
 		}

@@ -29,7 +29,7 @@ func (c *Config) handleRequest(incomingMessage *message.Message) error {
 
 	// Broadcast a prepare message to the proposals quorum of acceptors for the new round
 	for _, acceptor := range proposal.Quorum {
-		util.WriteToMultiFile(fmt.Sprintf("proposer %d->> acceptor %d:(%d) Prepare", c.Proposer.Port, acceptor, proposal.Nonce))
+		fmt.Println("proposer %d->> acceptor %d:(%d) Prepare", c.Proposer.Port, acceptor, proposal.Nonce)
 		if err := util.SendMessage(outgoingMessage, acceptor); err != nil {
 			return err
 		}
@@ -74,7 +74,7 @@ func (c *Config) handlePromise(incomingMessage *message.Message) error {
 
 	// Broadcast an accept message to the proposals quorum of acceptors
 	for _, acceptor := range c.Proposer.Proposals[promiseMessage.Round-1].Quorum {
-		util.WriteToMultiFile(fmt.Sprintf("proposer %d->> acceptor %d:(%d) Accept: %s", c.Proposer.Port, acceptor, payload.Nonce, payload.Value))
+		fmt.Println("proposer %d->> acceptor %d:(%d) Accept: %s", c.Proposer.Port, acceptor, payload.Nonce, payload.Value)
 		if err := util.SendMessage(outgoingMessage, acceptor); err != nil {
 			return err
 		}
@@ -107,7 +107,7 @@ func (c *Config) handleNack(incomingMessage *message.Message) error {
 
 	// Broadcast the updated prepare message for this round to the proposals quorum of acceptors
 	for _, acceptor := range c.Proposer.Proposals[nackMessage.Round-1].Quorum {
-		util.WriteToMultiFile(fmt.Sprintf("proposer %d->> acceptor %d:(%d) Prepare", c.Proposer.Port, acceptor, c.Proposer.Proposals[nackMessage.Round-1].Nonce))
+		fmt.Println("proposer %d->> acceptor %d:(%d) Prepare", c.Proposer.Port, acceptor, c.Proposer.Proposals[nackMessage.Round-1].Nonce)
 		if err := util.SendMessage(outgoingMessage, acceptor); err != nil {
 			return err
 		}

@@ -17,12 +17,12 @@ type Config struct {
 func Activate(port int, acceptors []int) {
 	c := &Config{
 		Proposer: node.Proposer{
-			Port:            port,
-			Acceptors:       acceptors,
+			Port:      port,
+			Acceptors: acceptors,
 		},
 	}
 
-	ln, err := net.Listen("tcp", fmt.Sprintf("127.0.0.1:%d",c.Proposer.Port))
+	ln, err := net.Listen("tcp", fmt.Sprintf("127.0.0.1:%d", c.Proposer.Port))
 	if err != nil {
 		log.Printf("Failed to connect to port: %d, error: %v\n ", c.Proposer.Port, err)
 		return

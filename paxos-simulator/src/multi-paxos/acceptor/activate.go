@@ -45,7 +45,6 @@ func Activate(port int, learners []int) {
 			log.Printf("Error decoding %v\n", err)
 		}
 
-
 		switch msg.Type {
 		case constant.PREPARE:
 			if err := c.handlePrepare(msg); err != nil {

@@ -18,12 +18,12 @@ type Config struct {
 // A learner must be initialized with a port number to be identified with
 func Activate(port int) {
 	c := &Config{
-		Learner: node.Learner {
+		Learner: node.Learner{
 			Port: port,
 		},
 	}
 
-	ln, err := net.Listen("tcp", fmt.Sprintf("127.0.0.1:%d",c.Learner.Port))
+	ln, err := net.Listen("tcp", fmt.Sprintf("127.0.0.1:%d", c.Learner.Port))
 	if err != nil {
 		log.Printf("Failed to connect to port: %d, error: %v\n ", c.Learner.Port, err)
 		return
