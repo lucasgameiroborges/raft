@@ -2,7 +2,6 @@ package Acceptor
 
 import (
 	"encoding/json"
-	"fmt"
 	"github.com/paxos/src/pkg/model/message"
 	"github.com/paxos/src/pkg/model/node"
 	"github.com/paxos/src/pkg/shared/constant"
@@ -17,7 +16,7 @@ type Config struct {
 // Activate activates an acceptor node
 // An acceptor must be initialized with a port number to be identified with and a set of learner nodes
 // which it may communicate with
-func Activate(port int, learners []int) {
+func Activate(port string, learners []string) {
 	c := &Config{
 		Acceptor: node.Acceptor{
 			Port:     port,
@@ -25,18 +24,18 @@ func Activate(port int, learners []int) {
 		},
 	}
 
-	ln, err := net.Listen("tcp", fmt.Sprintf("127.0.0.1:%d", c.Acceptor.Port))
+	ln, err := net.Listen("tcp", ":9002")
 	if err != nil {
-		log.Printf("Failed to connect to port: %d, error: %v\n ", c.Acceptor.Port, err)
+		log.Printf("Failed to connect to port 9002, error: %v\n ", err)
 		return
 	}
 
-	log.Printf("Accepting messages on: 127.0.0.1:%d\n", c.Acceptor.Port)
+	log.Printf("Accepting messages on: :9002\n")
 	for {
 		connIn, err := ln.Accept()
 		if err != nil {
 			if _, ok := err.(net.Error); ok {
-				log.Printf("Error received while listening 127.0.0.1:%d\n", c.Acceptor.Port)
+				log.Printf("Error received while listening :9002\n")
 			}
 		}
 

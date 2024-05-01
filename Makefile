@@ -85,7 +85,13 @@ mini-undeploy:
 	minikube kubectl -- delete service --all -n raft-k8s
 
 mini-describe:
-	minikube kubectl -- describe pod raft000-1 -n raft-k8s
+	minikube kubectl -- describe pod raft000-0 -n raft-k8s
+
+
+mini-log:
+	minikube kubectl -- logs raft000-0 -c raft-node -n raft-k8s
+	minikube kubectl -- logs raft000-1 -c raft-node -n raft-k8s
+	minikube kubectl -- logs raft000-2 -c raft-node -n raft-k8s
 
 clean:
 	rm -rf raft

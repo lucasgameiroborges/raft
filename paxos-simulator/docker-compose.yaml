@@ -18,7 +18,7 @@ services:
     container_name: basic-paxos-mermaid
     image: minlag/mermaid-cli:latest
     hostname: mermaid
-    command: ["-i", "/artifacts/basic-paxos-output.txt", "-o", "/artifacts/basic-paxos-output.pdf"]
+    command: ["-i", "/artifacts/basic-paxos-output", "-o", "/artifacts/basic-paxos-output.pdf"]
     depends_on:
       - paxos
     volumes:
@@ -29,7 +29,7 @@ services:
     container_name: multi-paxos-mermaid
     image: minlag/mermaid-cli:latest
     hostname: mermaid
-    command: [ "-i", "/artifacts/multi-paxos-output.txt", "-o", "/artifacts/multi-paxos-output.pdf" ]
+    command: [ "-i", "/artifacts/multi-paxos-output", "-o", "/artifacts/multi-paxos-output.pdf" ]
     depends_on:
       - paxos
     volumes:

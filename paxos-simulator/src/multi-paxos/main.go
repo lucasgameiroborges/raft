@@ -14,6 +14,7 @@ import (
 	"io/ioutil"
 	"net/http"
 	"os"
+	"path/filepath"
 	"regexp"
 	"strings"
 	"time"
@@ -35,24 +36,31 @@ func handleAdd(w http.ResponseWriter, r *http.Request) {
 		fmt.Fprintf(w, "String '%s' matches the pattern key:value\n", str)
 	} else {
 		fmt.Fprintf(w, "String '%s' does not match the pattern key:value, aborting\n", str)
-		return 
+		return
 	}
 
 	message1 := &message.Message{
-		Source:  0,
+		Source:  "nowhere",
 		Type:    constant.REQUEST,
 		Payload: message.Request{Value: str},
 	}
 
-	fmt.Println("client ->> proposer 9001: Request: %v", str)
-	fmt.Println("Note over client,proposer 9001: Initialize round 1\n")
-	util.SendMessage(message1, 9001)
+	statmsg := fmt.Sprintf("client ->> proposer %s:9001: Request: %v", os.Getenv("NODE_ID"), str)
+	util.WriteFile("status", statmsg)
+	statmsg = fmt.Sprintf("Note over client,proposer %s:9001: Initialize round 1\n", os.Getenv("NODE_ID"))
+	util.WriteFile("status", statmsg)
+	fmt.Fprintf(w, "sending a message... \n")
+	prop := os.Getenv("NODE_ID") + ".raft000.raft-k8s.svc.cluster.local" + ":9001"
+	err = util.SendMessage(message1, prop)
+	if err != nil {
+		fmt.Fprintf(w, "Failed! %s \n", err.Error())
+		return
+	}
+	fmt.Fprintf(w, "message sent! \n")
 
 	// Wait some time for Paxos to reach consensus
 	time.Sleep(time.Second / 10)
 
-	// Send a response
-	w.WriteHeader(http.StatusOK)
 	fmt.Fprintf(w, "Received POST request with body: %s \n", str)
 }
 
@@ -67,39 +75,46 @@ func handleDelete(w http.ResponseWriter, r *http.Request) {
 
 	deleted_value := "DELETE " + str
 	message1 := &message.Message{
-		Source:  0,
+		Source:  "nowhere2",
 		Type:    constant.REQUEST,
 		Payload: message.Request{Value: deleted_value},
 	}
 
-	fmt.Println("client ->> proposer 9001: Request: %v", str)
-	fmt.Println("Note over client,proposer 9001: Initialize round 1\n")
-	util.SendMessage(message1, 9001)
+	statmsg := fmt.Sprintf("client ->> proposer %s:9001: Request: %v", os.Getenv("NODE_ID"), str)
+	util.WriteFile("status", statmsg)
+	statmsg = fmt.Sprintf("Note over client,proposer %s:9001: Initialize round 1\n", os.Getenv("NODE_ID"))
+	util.WriteFile("status", statmsg)
+	prop := os.Getenv("NODE_ID") + ".raft000.raft-k8s.svc.cluster.local" + ":9001"
+	err = util.SendMessage(message1, prop)
+	if err != nil {
+		fmt.Fprintf(w, "Failed! %s \n", err.Error())
+		return
+	}
 
 	// Wait some time for Paxos to reach consensus
 	time.Sleep(time.Second / 10)
 
-	// Send a response
-	w.WriteHeader(http.StatusOK)
 	fmt.Fprintf(w, "Received POST request with body: %s \n", str)
 }
 
 func handleLog(w http.ResponseWriter, r *http.Request) {
 	// Read the contents of the file
-	content, err := ioutil.ReadFile("log.txt")
+	completeFilePath := "/node/cluster-data/log/" + "log-" + os.Getenv("NODE_ID") + ".txt"
+	content, err := ioutil.ReadFile(completeFilePath)
 	if err != nil {
 		fmt.Fprintf(w, "Error reading file: %v \n", err)
 		return
 	}
 
 	// Print the contents of the file
-	fmt.Fprintf(w, "contents of log file from this machine: \n")
+	fmt.Fprintf(w, "contents of log file from %s: \n", os.Getenv("NODE_ID"))
 	fmt.Fprintf(w, string(content))
 }
 
 func handlePrint(w http.ResponseWriter, r *http.Request) {
 	// Open the file
-	file, err := os.Open("log.txt")
+	completeFilePath := "/node/cluster-data/log/" + "log-" + os.Getenv("NODE_ID") + ".txt"
+	file, err := os.Open(completeFilePath)
 	if err != nil {
 		fmt.Fprintf(w, "Error reading file: %v \n", err)
 	}
@@ -135,9 +150,29 @@ func handlePrint(w http.ResponseWriter, r *http.Request) {
 		fmt.Fprintf(w, "Error:", err)
 		return
 	}
-	fmt.Fprintf(w, "Dictionary stored in log: \n\n")
+	fmt.Fprintf(w, "Dictionary stored in %s: \n\n", os.Getenv("NODE_ID"))
 	fmt.Fprintf(w, string(prettyJSON))
 	fmt.Fprintf(w, "\n")
+}
+
+func wipeLogFolder() {
+    // Specify the directory path
+    directory := "/node/cluster-data/log/"
+
+    // List all files in the directory
+    files, err := filepath.Glob(filepath.Join(directory, "*"))
+    if err != nil {
+        fmt.Println("Error:", err)
+        return
+    }
+
+    // Delete each file
+    for _, file := range files {
+        err := os.Remove(file)
+        if err != nil {
+            fmt.Println("Error deleting file:", err)
+        }
+    }
 }
 
 // Initializes an instance of Multi-Paxos with several nodes: one proposer, three acceptors, and one learner
@@ -145,12 +180,28 @@ func handlePrint(w http.ResponseWriter, r *http.Request) {
 // The requests are processed in rounds by the network, and the network arrives to a consensus on both values in their
 // respective rounds
 func main() {
+	wipeLogFolder()
+	
+	var acceptors []string
+	var learners []string
+	var targetServiceIP string
+	var acc string
+	var lea string
 
-	fmt.Println("Initializing Multi-Paxos...")
+	for i := 0; i <= 2; i++ {
+		targetServiceIP = fmt.Sprintf("raft000-%d.raft000.raft-k8s.svc.cluster.local", i)
+		acc = targetServiceIP + ":9002"
+		lea = targetServiceIP + ":9003"
+		acceptors = append(acceptors, acc)
+		learners = append(learners, lea)
+	}
+	proposer := os.Getenv("NODE_ID") + ".raft000.raft-k8s.svc.cluster.local" + ":9001"
+	acceptor := os.Getenv("NODE_ID") + ".raft000.raft-k8s.svc.cluster.local" + ":9002"
+	learner := os.Getenv("NODE_ID") + ".raft000.raft-k8s.svc.cluster.local" + ":9003"
 
-	go Proposer.Activate(9001, []int{9002})
-	go Acceptor.Activate(9002, []int{9003})
-	go Learner.Activate(9003)
+	go Proposer.Activate(proposer, acceptors)
+	go Acceptor.Activate(acceptor, learners)
+	go Learner.Activate(learner)
 
 	http.HandleFunc("/add", handleAdd)
 	http.HandleFunc("/delete", handleDelete)

@@ -36,13 +36,23 @@ spec:
     spec:
       containers:
       - name: raft-node
-        image: lucasgameiroborges/raft:v1.0.2
+        # image: lucasgameiroborges/raft:v1.0.2
+        image: lucasgameiroborges/paxos:v1.0.6
         imagePullPolicy: Always
         # Specify the ports to be exposed in
         # the pod for communication with other nodes
+        # ports:
+        # - name: rpc
+        #   containerPort: 6666
+        # - name: api
+        #   containerPort: 7777
         ports:
-        - name: rpc
-          containerPort: 6666
+        - name: proposer
+          containerPort: 9001
+        - name: acceptor
+          containerPort: 9002
+        - name: learner
+          containerPort: 9003
         - name: api
           containerPort: 7777
         

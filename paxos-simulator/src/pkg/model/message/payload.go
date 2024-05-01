@@ -3,30 +3,30 @@ package message
 import "encoding/json"
 
 type Prepare struct {
-	Nonce int `json:"nonce"`
+	Nonce int64 `json:"nonce"`
 	Round int `json:"round"`
 }
 
 type Promise struct {
-	Nonce    int      `json:"nonce"`
+	Nonce    int64      `json:"nonce"`
 	Round    int      `json:"round"`
 	Proposal Proposal `json:"proposal"`
 }
 
 type Accept struct {
-	Nonce int    `json:"nonce"`
+	Nonce int64    `json:"nonce"`
 	Round int    `json:"round"`
 	Value string `json:"value"`
 }
 
 type Accepted struct {
-	Nonce int    `json:"nonce"`
+	Nonce int64    `json:"nonce"`
 	Round int    `json:"round"`
 	Value string `json:"value"`
 }
 
 type Nack struct {
-	Nonce int `json:"nonce"`
+	Nonce int64 `json:"nonce"`
 	Round int `json:"round"`
 }
 
@@ -40,7 +40,7 @@ type Response struct {
 
 type Proposal struct {
 	Value string `json:"value"`
-	Nonce int    `json:"nonce"`
+	Nonce int64    `json:"nonce"`
 }
 
 // Unmarshal is used to unmarshal payloads

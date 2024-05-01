@@ -2,7 +2,6 @@ package Proposer
 
 import (
 	"encoding/json"
-	"fmt"
 	"github.com/paxos/src/pkg/model/message"
 	"github.com/paxos/src/pkg/model/node"
 	"github.com/paxos/src/pkg/shared/constant"
@@ -14,7 +13,7 @@ type Config struct {
 	Proposer node.Proposer
 }
 
-func Activate(port int, acceptors []int) {
+func Activate(port string, acceptors []string) {
 	c := &Config{
 		Proposer: node.Proposer{
 			Port:      port,
@@ -22,18 +21,18 @@ func Activate(port int, acceptors []int) {
 		},
 	}
 
-	ln, err := net.Listen("tcp", fmt.Sprintf("127.0.0.1:%d", c.Proposer.Port))
+	ln, err := net.Listen("tcp", ":9001")
 	if err != nil {
-		log.Printf("Failed to connect to port: %d, error: %v\n ", c.Proposer.Port, err)
+		log.Printf("Failed to connect to port: 9001, error: %v\n ", err)
 		return
 	}
 
-	log.Printf("Accepting messages on: 127.0.0.1:%d\n", c.Proposer.Port)
+	log.Printf("Accepting messages on: :9001\n")
 	for {
 		connIn, err := ln.Accept()
 		if err != nil {
 			if _, ok := err.(net.Error); ok {
-				log.Printf("Error received while listening 127.0.0.1:%d\n", c.Proposer.Port)
+				log.Printf("Error received while listening :9001\n")
 			}
 		}
 

@@ -8,23 +8,23 @@ import (
 
 type Proposal struct {
 	Value    string
-	Nonce    int
-	Quorum   []int
+	Nonce    int64
+	Quorum   []string
 	Promises []message.Promise
 }
 
 type Proposer struct {
-	Port         int
-	Acceptors    []int
+	Port         string
+	Acceptors    []string
 	Proposals    []Proposal
-	CurrentNonce int
+	CurrentNonce int64
 }
 
 ///////////////////////////
 //// Proposal Helpers ////
 //////////////////////////
 
-func (p *Proposal) NonceDoesNotEqual(nonce int) bool {
+func (p *Proposal) NonceDoesNotEqual(nonce int64) bool {
 	return p.Nonce != nonce
 }
 
@@ -46,7 +46,7 @@ func (p *Proposal) HasAcceptedValueToBroadcast() bool {
 }
 
 func (p *Proposal) GetAcceptedValueToBroadcast() string {
-	nonce := int(0)
+	nonce := time.Now().UnixNano()
 	value := ""
 
 	for _, promise := range p.Promises {
@@ -63,15 +63,14 @@ func (p *Proposal) GetAcceptedValueToBroadcast() string {
 //// Proposer Helpers ////
 //////////////////////////
 
-func (p *Proposer) GetQuorum() []int {
+func (p *Proposer) GetQuorum() []string {
 	rand.Seed(time.Now().UnixNano())
 	rand.Shuffle(len(p.Acceptors), func(i, j int) { p.Acceptors[i], p.Acceptors[j] = p.Acceptors[j], p.Acceptors[i] })
 	return p.Acceptors[:(len(p.Acceptors)/2)+1]
 }
 
-func (p *Proposer) GetNonce() int {
-	p.CurrentNonce++
-	return p.CurrentNonce
+func (p *Proposer) GetNonce() int64 {
+	return time.Now().UnixNano()
 }
 
 func (p *Proposer) AddProposal(value string) Proposal {

@@ -10,6 +10,7 @@ import (
 // handlePrepare processes prepare messages
 func (c *Config) handlePrepare(incomingMessage *message.Message) error {
 	prepareMessage := &message.Prepare{}
+	var statmsg string
 	if err := message.Unmarshal(incomingMessage.Payload, prepareMessage); err != nil {
 		return err
 	}
@@ -26,8 +27,11 @@ func (c *Config) handlePrepare(incomingMessage *message.Message) error {
 					Round: prepareMessage.Round,
 				},
 			}
-			fmt.Println("acceptor %d--x proposer %d:(%d) Nack", c.Acceptor.Port, incomingMessage.Source, prepareMessage.Nonce)
+			statmsg = fmt.Sprintf("acceptor %s--x proposer all:%d:(%d) Nack", c.Acceptor.Port, incomingMessage.Source, prepareMessage.Nonce)
+			util.WriteFile("status", statmsg)
 			if err := util.SendMessage(outgoingMessage, incomingMessage.Source); err != nil {
+				util.WriteFile("error", "error caught! \n")
+				util.WriteFile("error", err.Error())
 				return err
 			}
 			return nil
@@ -42,8 +46,8 @@ func (c *Config) handlePrepare(incomingMessage *message.Message) error {
 
 	// If the acceptor has already accepted a proposal for this round (default of 1 for Basic-Paxos) then include it
 	// in its promise to the proposer
-	if c.Acceptor.HasAcceptedProposal(prepareMessage.Round) {
-		promise.Proposal = c.Acceptor.AcceptedProposals[prepareMessage.Round-1]
+	if (c.Acceptor.HasAcceptedProposal(prepareMessage.Round) && prepareMessage.Round > 0){
+		promise.Proposal = c.Acceptor.AcceptedProposals[len(c.Acceptor.AcceptedProposals) - 1]
 	}
 
 	// Add the promise to the acceptors list of promises
@@ -58,13 +62,19 @@ func (c *Config) handlePrepare(incomingMessage *message.Message) error {
 
 	// Send the promise message to proposer
 	if c.Acceptor.HasAcceptedProposal(prepareMessage.Round) { // Send a promise with a proposal that has already been accepted
-		fmt.Println("acceptor %d-->> proposer %d:(%d) Promise: %+v", c.Acceptor.Port, incomingMessage.Source, prepareMessage.Nonce, promise.Proposal)
+		statmsg = fmt.Sprintf("acceptor %s-->> proposer all:%d:(%d) Promise: %+v", c.Acceptor.Port, incomingMessage.Source, prepareMessage.Nonce, promise.Proposal)
+		util.WriteFile("status", statmsg)
 		if err := util.SendMessage(outgoingMessage, incomingMessage.Source); err != nil {
+			util.WriteFile("error", "error caught! \n")
+			util.WriteFile("error", err.Error())
 			return err
 		}
 	} else { // Send a promise to not accept any nonce equal to or less than the one supplied in the prepare message
-		fmt.Println("acceptor %d-->> proposer %d:(%d) Promise", c.Acceptor.Port, incomingMessage.Source, prepareMessage.Nonce)
+		statmsg = fmt.Sprintf("acceptor %s-->> proposer all:%d:(%d) Promise", c.Acceptor.Port, incomingMessage.Source, prepareMessage.Nonce)
+		util.WriteFile("status", statmsg)
 		if err := util.SendMessage(outgoingMessage, incomingMessage.Source); err != nil {
+			util.WriteFile("error", "error caught! \n")
+			util.WriteFile("error", err.Error())
 			return err
 		}
 	}
@@ -75,6 +85,7 @@ func (c *Config) handlePrepare(incomingMessage *message.Message) error {
 // handleAccept handles accept messages
 func (c *Config) handleAccept(incomingMessage *message.Message) error {
 	acceptMessage := &message.Accept{}
+	var statmsg string
 	if err := message.Unmarshal(incomingMessage.Payload, acceptMessage); err != nil {
 		return err
 	}
@@ -91,8 +102,11 @@ func (c *Config) handleAccept(incomingMessage *message.Message) error {
 					Round: acceptMessage.Round,
 				},
 			}
-			fmt.Println("acceptor %d--x proposer %d:(%d) Nack", c.Acceptor.Port, incomingMessage.Source, acceptMessage.Nonce)
+			statmsg = fmt.Sprintf("acceptor %s--x proposer all:%d:(%d) Nack", c.Acceptor.Port, incomingMessage.Source, acceptMessage.Nonce)
+			util.WriteFile("status", statmsg)
 			if err := util.SendMessage(outgoingMessage, incomingMessage.Source); err != nil {
+				util.WriteFile("error", "error caught! \n")
+				util.WriteFile("error", err.Error())
 				return err
 			}
 		}
@@ -114,8 +128,11 @@ func (c *Config) handleAccept(incomingMessage *message.Message) error {
 
 	// Broadcast that a proposal has been accepted by this acceptor for this round to its list of learners
 	for _, learner := range c.Acceptor.Learners {
-		fmt.Println("acceptor %d-->> learner %d:(%d) Accepted: %s", c.Acceptor.Port, learner, acceptMessage.Nonce, acceptMessage.Value)
+		statmsg = fmt.Sprintf("acceptor %s-->> learner all:%d:(%d) Accepted: %s", c.Acceptor.Port, learner, acceptMessage.Nonce, acceptMessage.Value)
+		util.WriteFile("status", statmsg)
 		if err := util.SendMessage(outgoingMessage, learner); err != nil {
+			util.WriteFile("error", "error caught! \n")
+			util.WriteFile("error", err.Error())
 			return err
 		}
 	}
