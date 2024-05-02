@@ -35,9 +35,7 @@ This command if successful would create a 3-node cluster with nodes _node-1_, _n
 
 1. Create a new key-value pair (a -> 1)
    ```shell
-    curl -v --header "Content-Type: application/json" \
-            --request POST --data '{"k":"a", "v":"1"}' \
-            http://localhost:7777/v1/data
+    curl -v --header "Content-Type: application/json" --request POST --data '{"k":"a", "v":"1"}' http://localhost:7777/v1/data
    ```
 2. Query for the key-value pair just created. This should return the key-value pair we just created in JSON format.
    ```shell
