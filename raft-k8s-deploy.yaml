@@ -130,10 +130,10 @@ spec:
     spec:
       storageClassName: manual
       accessModes: [ ReadWriteMany ]
-      resources: { requests: { storage: 1Gi } }
+      resources: { requests: { storage: 1Mi } }
   
   # Volume claim template for storing raft state
-  # This does not require a lot of space. But 1Gi
+  # This does not require a lot of space. But 1Mi
   # looks like minimum space?
   - metadata:
       name: *state
@@ -141,7 +141,7 @@ spec:
     spec:
       storageClassName: manual
       accessModes: [ ReadWriteMany ]
-      resources: { requests: { storage: 1Gi } }
+      resources: { requests: { storage: 1Mi } }
   
   # Volume claim template for storing snapshot data
   # This might require lot of space
@@ -151,7 +151,7 @@ spec:
     spec:
       storageClassName: manual
       accessModes: [ ReadWriteMany ]
-      resources: { requests: { storage: 5Gi } }
+      resources: { requests: { storage: 5Mi } }
 ---
 apiVersion: v1
 kind: Service

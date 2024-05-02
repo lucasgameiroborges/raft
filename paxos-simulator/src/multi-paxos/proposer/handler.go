@@ -5,37 +5,8 @@ import (
 	"github.com/paxos/src/pkg/model/message"
 	"github.com/paxos/src/pkg/shared/constant"
 	"github.com/paxos/src/pkg/shared/util"
-	"os"
-	"bufio"
+	"github.com/paxos/src/multi-paxos/variable"
 )
-
-func countLogEntries() int {
-	// Open the file
-	completeFilePath := "/node/cluster-data/log/" + "log-" + os.Getenv("NODE_ID") + ".txt"
-	file, err := os.Open(completeFilePath)
-	if err != nil {
-		return 0
-	}
-	defer file.Close()
-
-	// Create a scanner to read the file line by line
-	scanner := bufio.NewScanner(file)
-
-	// Initialize a line counter
-	lineCount := 0
-
-	// Iterate over each line and count
-	for scanner.Scan() {
-		lineCount++
-	}
-
-	// Check for any scanning errors
-	if err := scanner.Err(); err != nil {
-		return 0
-	}
-
-	return lineCount
-}
 
 // handleRequest processes request messages
 func (c *Config) handleRequest(incomingMessage *message.Message) error {
@@ -47,20 +18,17 @@ func (c *Config) handleRequest(incomingMessage *message.Message) error {
 
 	// Add the request to the proposers list of proposals
 	proposal := c.Proposer.AddProposal(requestMessage.Value)
-	logSize := countLogEntries()
-	fmt.Println("Tamanho do log: ", logSize)
-	round := logSize + 1
 	// Construct the proposal message for the new round
 	outgoingMessage := &message.Message{
 		Source: c.Proposer.Port,
 		Type:   constant.PREPARE,
 		Payload: message.Prepare{
 			Nonce: proposal.Nonce,
-			Round: round,
+			Round: variable.Round,
 		},
 	}
 	fmt.Println("Querem submitar algo: ", requestMessage.Value)
-	fmt.Println("Que round pensam que ta: ", round)
+	fmt.Println("Que round pensam que ta: ", variable.Round)
 	fmt.Println("tamanho das proposals: ", len(c.Proposer.Proposals))
 
 	// Broadcast a prepare message to the proposals quorum of acceptors for the new round

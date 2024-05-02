@@ -8,6 +8,7 @@ import (
 	Acceptor "github.com/paxos/src/multi-paxos/acceptor"
 	Learner "github.com/paxos/src/multi-paxos/learner"
 	Proposer "github.com/paxos/src/multi-paxos/proposer"
+	"github.com/paxos/src/multi-paxos/variable"
 	"github.com/paxos/src/pkg/model/message"
 	"github.com/paxos/src/pkg/shared/constant"
 	"github.com/paxos/src/pkg/shared/util"
@@ -21,6 +22,8 @@ import (
 )
 
 func handleAdd(w http.ResponseWriter, r *http.Request) {
+	tries := 0
+	initialLog := variable.LogSize
 	// Read the body of the request
 	body, err := ioutil.ReadAll(r.Body)
 	if err != nil {
@@ -45,23 +48,33 @@ func handleAdd(w http.ResponseWriter, r *http.Request) {
 		Payload: message.Request{Value: str},
 	}
 
-	statmsg := fmt.Sprintf("client ->> proposer %s:9001: Request: %v", os.Getenv("NODE_ID"), str)
-	util.WriteFile("status", statmsg)
-	statmsg = fmt.Sprintf("Note over client,proposer %s:9001: Initialize round 1\n", os.Getenv("NODE_ID"))
-	util.WriteFile("status", statmsg)
-	fmt.Fprintf(w, "sending a message... \n")
+	// fmt.Fprintf(w, "sending a message... \n")
 	prop := os.Getenv("NODE_ID") + ".raft000.raft-k8s.svc.cluster.local" + ":9001"
 	err = util.SendMessage(message1, prop)
 	if err != nil {
-		fmt.Fprintf(w, "Failed! %s \n", err.Error())
+		// fmt.Fprintf(w, "Failed! %s \n", err.Error())
 		return
 	}
-	fmt.Fprintf(w, "message sent! \n")
+	// fmt.Fprintf(w, "message sent! \n")
 
 	// Wait some time for Paxos to reach consensus
-	time.Sleep(time.Second / 10)
-
-	fmt.Fprintf(w, "Received POST request with body: %s \n", str)
+	//time.Sleep(time.Second / 5)
+	startTime := time.Now()
+	elapsedTime := time.Since(startTime)
+	for {
+		if variable.LogSize > initialLog {
+			fmt.Fprintf(w, "Value successfuly stored in log\n")
+			variable.Round++
+			fmt.Fprintf(w, "New round: %s\n", variable.Round)
+			break
+		}
+		elapsedTime = time.Since(startTime)
+		if elapsedTime > 1*time.Second {
+			http.Error(w, "fail", http.StatusBadRequest)
+			return 
+		}
+		tries = tries + 1
+	}
 }
 
 func handleDelete(w http.ResponseWriter, r *http.Request) {
@@ -181,14 +194,16 @@ func wipeLogFolder() {
 // respective rounds
 func main() {
 	wipeLogFolder()
-	
+	variable.Round = 1
+	variable.LogSize = 0
+
 	var acceptors []string
 	var learners []string
 	var targetServiceIP string
 	var acc string
 	var lea string
 
-	for i := 0; i <= 2; i++ {
+	for i := 0; i < 3; i++ {
 		targetServiceIP = fmt.Sprintf("raft000-%d.raft000.raft-k8s.svc.cluster.local", i)
 		acc = targetServiceIP + ":9002"
 		lea = targetServiceIP + ":9003"
